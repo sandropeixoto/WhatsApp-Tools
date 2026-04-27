@@ -15,8 +15,9 @@ define('WEBHOOK_URL', 'https://sspeixoto.com.br/wapi/webhook.php');
  */
 function listInstances()
 {
-    $ch = curl_init(WAPI_BASE_URL . '/v1/client/list-instances?instanceId=' . WAPI_INSTANCE_ID);
+    $ch = curl_init(WAPI_BASE_URL . '/v1/client/list-instances?apiKey=' . WAPI_TOKEN);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         'Authorization: Bearer ' . WAPI_TOKEN
     ]);
@@ -40,6 +41,7 @@ function fetchInstanceDetails($instanceId)
 {
     $ch = curl_init(WAPI_BASE_URL . '/v1/instance/fetch-instance?instanceId=' . $instanceId);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         'Authorization: Bearer ' . WAPI_TOKEN
     ]);

@@ -157,7 +157,7 @@ foreach ($baseInstances as $base) {
                     <div class="card-footer bg-white border-0 pb-3 text-center">
                         <span class="text-muted" style="font-size: 0.7rem;">
                             Token: <code><?= substr($inst['token'] ?? '', 0, 8) ?>...</code> | 
-                            Criada em: <?= isset($inst['created']) ? date('d/m/Y', strtotime($inst['created'])) : '-' ?>
+                            Criada em: <?= isset($inst['created']) ? (is_numeric($inst['created']) ? date('d/m/Y', $inst['created'] / 1000) : date('d/m/Y', strtotime($inst['created']))) : '-' ?>
                         </span>
                     </div>
                 </div>
