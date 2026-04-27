@@ -17,16 +17,20 @@ try {
 
     $mediaData = json_decode($msg['content'], true);
     
+    // Usa o instance_id gravado na mensagem, ou o padrão se não houver
+    $instanceId = $msg['instance_id'] ?? WAPI_INSTANCE_ID;
+
     // Prepara os dados para a W-API conforme Postman
     $postData = [
         'mediaKey'   => $mediaData['mediaKey'] ?? '',
         'directPath' => $mediaData['directPath'] ?? '',
+        'url'        => $mediaData['url'] ?? '', // Algumas versões da API usam url
         'type'       => $msg['message_type'],
         'mimetype'   => $mediaData['mimetype'] ?? ''
     ];
 
     // Chama a API para pegar o link temporário
-    $url = WAPI_BASE_URL . "/v1/message/download-media?instanceId=" . WAPI_INSTANCE_ID;
+    $url = WAPI_BASE_URL . "/v1/message/download-media?instanceId=" . $instanceId;
     
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);

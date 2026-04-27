@@ -34,6 +34,28 @@ function listInstances()
 }
 
 /**
+ * Busca dados detalhados de uma instância específica
+ */
+function fetchInstanceDetails($instanceId)
+{
+    $ch = curl_init(WAPI_BASE_URL . '/v1/instance/fetch-instance?instanceId=' . $instanceId);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Authorization: Bearer ' . WAPI_TOKEN
+    ]);
+    
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($httpCode === 200) {
+        return json_decode($response, true);
+    }
+    
+    return null;
+}
+
+/**
  * Função para conectar ao banco de dados SQLite
  */
 function getDB()

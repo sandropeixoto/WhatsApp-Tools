@@ -54,22 +54,33 @@ try {
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-success mb-4 shadow-sm">
     <div class="container">
-        <span class="navbar-brand mb-0 h1">W-API Dashboard</span>
-        
-        <form class="ms-auto d-flex align-items-center" method="GET">
-            <label class="text-white me-2 small fw-bold text-uppercase">Instância:</label>
-            <select name="instance" class="form-select form-select-sm" onchange="this.form.submit()" style="min-width: 200px;">
-                <?php foreach ($instances as $inst): ?>
-                    <option value="<?= $inst['instanceId'] ?>" <?= $selectedInstance == $inst['instanceId'] ? 'selected' : '' ?>>
-                        <?= htmlspecialchars($inst['instanceName'] ?? $inst['instanceId']) ?>
-                    </option>
-                <?php endforeach; ?>
-                <?php if (empty($instances)): ?>
-                    <option value="<?= WAPI_INSTANCE_ID ?>"><?= WAPI_INSTANCE_ID ?> (Config)</option>
-                <?php endif; ?>
-            </select>
-            <a class="btn btn-outline-light btn-sm ms-3" href="diagnostico.php">Diagnóstico</a>
-        </form>
+        <a class="navbar-brand h1 mb-0" href="index.php">
+            <i class="bi bi-whatsapp me-2"></i>W-API Dashboard
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link active" href="index.php">Mensagens</a></li>
+                <li class="nav-item"><a class="nav-link" href="instancias.php">Minhas Instâncias</a></li>
+                <li class="nav-item"><a class="nav-link" href="diagnostico.php">Diagnóstico</a></li>
+            </ul>
+            
+            <form class="d-flex align-items-center" method="GET">
+                <label class="text-white me-2 small fw-bold text-uppercase d-none d-md-block">Instância:</label>
+                <select name="instance" class="form-select form-select-sm" onchange="this.form.submit()" style="min-width: 200px;">
+                    <?php foreach ($instances as $inst): ?>
+                        <option value="<?= $inst['instanceId'] ?>" <?= $selectedInstance == $inst['instanceId'] ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($inst['instanceName'] ?? $inst['instanceId']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                    <?php if (empty($instances)): ?>
+                        <option value="<?= WAPI_INSTANCE_ID ?>"><?= WAPI_INSTANCE_ID ?> (Config)</option>
+                    <?php endif; ?>
+                </select>
+            </form>
+        </div>
     </div>
 </nav>
 
@@ -119,6 +130,9 @@ try {
                                 <span class="small text-muted"><?= htmlspecialchars($msg['phone']) ?></span>
                             </td>
                             <td class="msg-content">
+                                <?php 
+                                    $contentData = json_decode($msg['content'], true); 
+                                ?>
                                 <?php if ($msg['message_type'] === 'text'): ?>
                                     <?= nl2br(htmlspecialchars($msg['content'])) ?>
                                 <?php elseif ($msg['message_type'] === 'image'): ?>
@@ -132,8 +146,22 @@ try {
                                     </div>
                                 <?php elseif ($msg['message_type'] === 'audio'): ?>
                                     <audio controls class="w-100" style="max-width: 250px;">
+                                        <source src="get_media.php?id=<?= $msg['message_id'] ?>" type="audio/ogg">
                                         <source src="get_media.php?id=<?= $msg['message_id'] ?>" type="audio/mpeg">
+                                        Seu navegador não suporta áudio.
                                     </audio>
+                                <?php elseif ($msg['message_type'] === 'document'): ?>
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-light p-2 rounded me-2">📄</div>
+                                        <div>
+                                            <span class="small d-block text-truncate" style="max-width: 150px;">
+                                                <?= htmlspecialchars($contentData['fileName'] ?? $contentData['title'] ?? 'Documento.pdf') ?>
+                                            </span>
+                                            <a href="get_media.php?id=<?= $msg['message_id'] ?>" target="_blank" class="btn btn-sm btn-link p-0">
+                                                Baixar Arquivo
+                                            </a>
+                                        </div>
+                                    </div>
                                 <?php else: ?>
                                     <a href="get_media.php?id=<?= $msg['message_id'] ?>" target="_blank" class="btn btn-sm btn-light">
                                         📎 Baixar Arquivo
