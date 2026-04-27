@@ -136,9 +136,13 @@ try {
                                 <?php if ($msg['message_type'] === 'text'): ?>
                                     <?= nl2br(htmlspecialchars($msg['content'])) ?>
                                 <?php elseif ($msg['message_type'] === 'image'): ?>
-                                    <img src="get_media.php?id=<?= $msg['message_id'] ?>" 
+                                    <?php 
+                                        $thumb = $contentData['jpegThumbnail'] ?? '';
+                                        $imgSrc = !empty($thumb) ? 'data:image/jpeg;base64,' . $thumb : 'get_media.php?id=' . $msg['message_id'];
+                                    ?>
+                                    <img src="<?= $imgSrc ?>" 
                                          class="thumb-media" 
-                                         onclick="showMedia('image', this.src)"
+                                         onclick="showMedia('image', 'get_media.php?id=<?= $msg['message_id'] ?>')"
                                          alt="Thumbnail">
                                 <?php elseif ($msg['message_type'] === 'video'): ?>
                                     <div class="video-thumb" onclick="showMedia('video', 'get_media.php?id=<?= $msg['message_id'] ?>')">
