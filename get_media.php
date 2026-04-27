@@ -24,7 +24,6 @@ try {
     $postData = [
         'mediaKey'   => $mediaData['mediaKey'] ?? '',
         'directPath' => $mediaData['directPath'] ?? '',
-        'url'        => $mediaData['url'] ?? '', // Algumas versões da API usam url
         'type'       => $msg['message_type'],
         'mimetype'   => $mediaData['mimetype'] ?? ''
     ];
