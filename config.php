@@ -8,7 +8,7 @@ define('WAPI_TOKEN', 'NSaqg8w82RnoEEcFQD9mfEAoxhZR7WI3L');
 define('WAPI_BASE_URL', 'https://api.w-api.app');
 
 // URL do seu webhook (Altere após publicar online)
-define('WEBHOOK_URL', 'https://sspeixoto/wapi/webhook.php');
+define('WEBHOOK_URL', 'https://sspeixoto.com.br/wapi/webhook.php');
 
 /**
  * Função para conectar ao banco de dados SQLite
