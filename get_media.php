@@ -46,9 +46,26 @@ try {
     curl_close($ch);
 
     if (isset($data['url'])) {
-        // Redireciona para o link temporário da mídia
-        header("Location: " . $data['url']);
-        exit;
+        // Proxy: Baixa o conteúdo da URL temporária e serve diretamente
+        $ctx = stream_context_create([
+            "ssl" => ["verify_peer" => false, "verify_peer_name" => false]
+        ]);
+        
+        $fileContent = @file_get_contents($data['url'], false, $ctx);
+        
+        if ($fileContent !== false) {
+            $mimetype = $mediaData['mimetype'] ?? 'application/octet-stream';
+            header("Content-Type: " . $mimetype);
+            // Se for documento, força o download ou nome do arquivo
+            if ($msg['message_type'] === 'document') {
+                $filename = $mediaData['fileName'] ?? $mediaData['title'] ?? 'arquivo';
+                header("Content-Disposition: inline; filename=\"" . $filename . "\"");
+            }
+            echo $fileContent;
+            exit;
+        } else {
+            die('Não foi possível baixar o conteúdo da mídia da URL gerada.');
+        }
     } else {
         die('Erro ao obter link da mídia na API: ' . ($data['message'] ?? 'Erro desconhecido'));
     }
