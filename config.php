@@ -11,6 +11,29 @@ define('WAPI_BASE_URL', 'https://api.w-api.app');
 define('WEBHOOK_URL', 'https://sspeixoto.com.br/wapi/webhook.php');
 
 /**
+ * Busca a lista de instâncias da W-API
+ */
+function listInstances()
+{
+    $ch = curl_init(WAPI_BASE_URL . '/v1/client/list-instances?instanceId=' . WAPI_INSTANCE_ID);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Authorization: Bearer ' . WAPI_TOKEN
+    ]);
+    
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($httpCode === 200) {
+        $data = json_decode($response, true);
+        return $data['instances'] ?? [];
+    }
+    
+    return [];
+}
+
+/**
  * Função para conectar ao banco de dados SQLite
  */
 function getDB()

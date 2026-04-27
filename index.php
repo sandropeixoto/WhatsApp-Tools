@@ -3,12 +3,30 @@ require_once 'config.php';
 
 try {
     $db = getDB();
-    $totalMsgs = $db->query("SELECT COUNT(*) FROM messages")->fetchColumn();
-    $totalSent = $db->query("SELECT COUNT(*) FROM messages WHERE from_me = 1")->fetchColumn();
-    $totalReceived = $db->query("SELECT COUNT(*) FROM messages WHERE from_me = 0")->fetchColumn();
+    $instances = listInstances();
     
-    $stmt = $db->query("SELECT * FROM messages ORDER BY created_at DESC LIMIT 100");
-    $messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // Define a instância selecionada (GET ou padrão da config)
+    $selectedInstance = $_GET['instance'] ?? WAPI_INSTANCE_ID;
+
+    // Filtro SQL
+    $where = " WHERE instance_id = ?";
+    
+    $stmtTotal = $db->prepare("SELECT COUNT(*) FROM messages" . $where);
+    $stmtTotal->execute([$selectedInstance]);
+    $totalMsgs = $stmtTotal->fetchColumn();
+
+    $stmtSent = $db->prepare("SELECT COUNT(*) FROM messages" . $where . " AND from_me = 1");
+    $stmtSent->execute([$selectedInstance]);
+    $totalSent = $stmtSent->fetchColumn();
+
+    $stmtReceived = $db->prepare("SELECT COUNT(*) FROM messages" . $where . " AND from_me = 0");
+    $stmtReceived->execute([$selectedInstance]);
+    $totalReceived = $stmtReceived->fetchColumn();
+    
+    $stmtMsgs = $db->prepare("SELECT * FROM messages" . $where . " ORDER BY created_at DESC LIMIT 100");
+    $stmtMsgs->execute([$selectedInstance]);
+    $messages = $stmtMsgs->fetchAll(PDO::FETCH_ASSOC);
+
 } catch (Exception $e) {
     die("Erro ao carregar dashboard: " . $e->getMessage());
 }
@@ -37,9 +55,21 @@ try {
 <nav class="navbar navbar-expand-lg navbar-dark bg-success mb-4 shadow-sm">
     <div class="container">
         <span class="navbar-brand mb-0 h1">W-API Dashboard</span>
-        <div class="navbar-nav ms-auto">
-            <a class="nav-link btn btn-outline-light btn-sm px-3" href="diagnostico.php">Diagnóstico</a>
-        </div>
+        
+        <form class="ms-auto d-flex align-items-center" method="GET">
+            <label class="text-white me-2 small fw-bold text-uppercase">Instância:</label>
+            <select name="instance" class="form-select form-select-sm" onchange="this.form.submit()" style="min-width: 200px;">
+                <?php foreach ($instances as $inst): ?>
+                    <option value="<?= $inst['instanceId'] ?>" <?= $selectedInstance == $inst['instanceId'] ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($inst['instanceName'] ?? $inst['instanceId']) ?>
+                    </option>
+                <?php endforeach; ?>
+                <?php if (empty($instances)): ?>
+                    <option value="<?= WAPI_INSTANCE_ID ?>"><?= WAPI_INSTANCE_ID ?> (Config)</option>
+                <?php endif; ?>
+            </select>
+            <a class="btn btn-outline-light btn-sm ms-3" href="diagnostico.php">Diagnóstico</a>
+        </form>
     </div>
 </nav>
 
