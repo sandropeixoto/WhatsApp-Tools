@@ -28,25 +28,27 @@ $results = [
     'files' => [
         'database_exists' => file_exists(DB_FILE),
         'database_writable' => is_writable(dirname(DB_FILE)),
-        'config_exists' => file_exists('config.php'),
     ],
     'api' => [],
-    'webhook' => [
-        'configured_url' => WEBHOOK_URL,
-        'matches' => false,
-        'api_url' => 'Não identificado'
+    'webhooks' => [
+        'received' => ['api_url' => 'N/A', 'matches' => false],
+        'delivery' => ['api_url' => 'N/A', 'matches' => false]
     ]
 ];
 
-// Teste de conexão com a API
 $apiRes = checkAPI('/v1/instance/fetch-instance');
 $results['api'] = $apiRes;
 
 if ($apiRes['code'] == 200 && isset($apiRes['data'])) {
     $instance = $apiRes['data'];
-    $results['webhook']['api_url'] = $instance['webhookReceivedUrl'] ?? 'N/A';
-    $results['webhook']['matches'] = ($results['webhook']['api_url'] === WEBHOOK_URL);
-    $results['webhook']['status_instance'] = $instance['status'] ?? 'N/A';
+    
+    $results['webhooks']['received']['api_url'] = $instance['webhookReceivedUrl'] ?? 'N/A';
+    $results['webhooks']['received']['matches'] = ($results['webhooks']['received']['api_url'] === WEBHOOK_URL);
+    
+    $results['webhooks']['delivery']['api_url'] = $instance['webhookDeliveryUrl'] ?? 'N/A';
+    $results['webhooks']['delivery']['matches'] = ($results['webhooks']['delivery']['api_url'] === WEBHOOK_URL);
+    
+    $results['status_instance'] = $instance['status'] ?? 'N/A';
 }
 
 ?>
@@ -60,6 +62,7 @@ if ($apiRes['code'] == 200 && isset($apiRes['data'])) {
     <style>
         .status-ok { color: #198754; font-weight: bold; }
         .status-error { color: #dc3545; font-weight: bold; }
+        .webhook-card { background: #f1f3f5; border-radius: 8px; padding: 10px; font-family: monospace; font-size: 0.85rem; }
     </style>
 </head>
 <body class="bg-light">
@@ -72,91 +75,79 @@ if ($apiRes['code'] == 200 && isset($apiRes['data'])) {
                 <a href="index.php" class="btn btn-outline-secondary btn-sm">Voltar ao Dashboard</a>
             </div>
 
-            <!-- Ambiente Server -->
             <div class="card mb-4 shadow-sm">
-                <div class="card-header bg-white fw-bold">Ambiente do Servidor</div>
+                <div class="card-header bg-white fw-bold">Ambiente e Arquivos</div>
                 <ul class="list-group list-group-flush">
-                    <li class="list-group-item d-flex justify-content-between">
-                        PHP Version <span><?= $results['env']['php_version'] ?></span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between">
-                        Extensão PDO SQLite 
-                        <span class="<?= $results['env']['pdo_sqlite'] ? 'status-ok' : 'status-error' ?>">
-                            <?= $results['env']['pdo_sqlite'] ? 'Instalada' : 'Não encontrada' ?>
+                    <li class="list-group-item d-flex justify-content-between small">
+                        PHP / SQLite / CURL
+                        <span>
+                            <?= $results['env']['php_version'] ?> / 
+                            <?= $results['env']['pdo_sqlite'] ? 'OK' : 'ERR' ?> / 
+                            <?= $results['env']['curl'] ? 'OK' : 'ERR' ?>
                         </span>
                     </li>
-                    <li class="list-group-item d-flex justify-content-between">
-                        Extensão CURL 
-                        <span class="<?= $results['env']['curl'] ? 'status-ok' : 'status-error' ?>">
-                            <?= $results['env']['curl'] ? 'Instalada' : 'Não encontrada' ?>
+                    <li class="list-group-item d-flex justify-content-between small">
+                        Banco de Dados / Permissão Escrita
+                        <span>
+                            <?= $results['files']['database_exists'] ? 'OK' : 'ERR' ?> / 
+                            <?= $results['files']['database_writable'] ? 'OK' : 'ERR' ?>
                         </span>
                     </li>
                 </ul>
             </div>
 
-            <!-- Arquivos Locais -->
-            <div class="card mb-4 shadow-sm">
-                <div class="card-header bg-white fw-bold">Arquivos e Permissões</div>
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item d-flex justify-content-between">
-                        Banco de Dados (SQLite)
-                        <span class="<?= $results['files']['database_exists'] ? 'status-ok' : 'status-error' ?>">
-                            <?= $results['files']['database_exists'] ? 'Encontrado' : 'Aguardando criação' ?>
-                        </span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between">
-                        Permissão de Escrita na Pasta
-                        <span class="<?= $results['files']['database_writable'] ? 'status-ok' : 'status-error' ?>">
-                            <?= $results['files']['database_writable'] ? 'OK' : 'Sem permissão' ?>
-                        </span>
-                    </li>
-                </ul>
-            </div>
-
-            <!-- Conexão API -->
             <div class="card mb-4 shadow-sm">
                 <div class="card-header bg-white fw-bold">Status na W-API</div>
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item d-flex justify-content-between">
-                        Conexão com a API (Token)
+                        Conexão API (Token)
                         <span class="<?= $results['api']['code'] == 200 ? 'status-ok' : 'status-error' ?>">
-                            <?= $results['api']['code'] == 200 ? 'Sucesso (200 OK)' : 'Erro (' . $results['api']['code'] . ')' ?>
+                            <?= $results['api']['code'] == 200 ? 'Conectado' : 'Erro ' . $results['api']['code'] ?>
                         </span>
                     </li>
                     <?php if ($results['api']['code'] == 200): ?>
                     <li class="list-group-item d-flex justify-content-between">
-                        Status do WhatsApp na Instância
-                        <span class="<?= $results['webhook']['status_instance'] == 'connected' ? 'status-ok' : 'status-error' ?>">
-                            <?= $results['webhook']['status_instance'] ?>
+                        Status WhatsApp
+                        <span class="<?= $results['status_instance'] == 'connected' ? 'status-ok' : 'status-error' ?>">
+                            <?= $results['status_instance'] ?>
                         </span>
                     </li>
+                    
                     <li class="list-group-item">
-                        <div class="d-flex justify-content-between mb-2">
-                            Webhook Configurado na API
-                            <span class="<?= $results['webhook']['matches'] ? 'status-ok' : 'status-error' ?>">
-                                <?= $results['webhook']['matches'] ? 'Sincronizado' : 'Divergente' ?>
-                            </span>
-                        </div>
-                        <div class="small p-2 bg-dark text-light rounded font-monospace">
-                            Local: <?= WEBHOOK_URL ?><br>
-                            W-API: <?= $results['webhook']['api_url'] ?>
-                        </div>
-                        <?php if (!$results['webhook']['matches']): ?>
-                            <div class="mt-2">
-                                <a href="set_webhook.php" target="_blank" class="btn btn-warning btn-sm w-100">Atualizar Webhook na API</a>
+                        <div class="fw-bold mb-2">Webhooks Configurados:</div>
+                        
+                        <!-- Webhook Received -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="small">Mensagens Recebidas</span>
+                                <span class="<?= $results['webhooks']['received']['matches'] ? 'status-ok' : 'status-error' ?> small">
+                                    <?= $results['webhooks']['received']['matches'] ? 'Sincronizado' : 'Divergente' ?>
+                                </span>
                             </div>
+                            <div class="webhook-card">W-API: <?= $results['webhooks']['received']['api_url'] ?></div>
+                        </div>
+
+                        <!-- Webhook Delivery -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="small">Mensagens Enviadas (Delivery)</span>
+                                <span class="<?= $results['webhooks']['delivery']['matches'] ? 'status-ok' : 'status-error' ?> small">
+                                    <?= $results['webhooks']['delivery']['matches'] ? 'Sincronizado' : 'Divergente' ?>
+                                </span>
+                            </div>
+                            <div class="webhook-card">W-API: <?= $results['webhooks']['delivery']['api_url'] ?></div>
+                        </div>
+
+                        <?php if (!$results['webhooks']['received']['matches'] || !$results['webhooks']['delivery']['matches']): ?>
+                            <a href="set_webhook.php" target="_blank" class="btn btn-warning btn-sm w-100 mt-2">Corrigir Webhooks na API</a>
                         <?php endif; ?>
-                    </li>
-                    <?php else: ?>
-                    <li class="list-group-item text-danger small">
-                        Não foi possível recuperar dados da API. Verifique seu WAPI_TOKEN e WAPI_INSTANCE_ID no arquivo config.php.
                     </li>
                     <?php endif; ?>
                 </ul>
             </div>
 
             <div class="text-center">
-                <button onclick="window.location.reload()" class="btn btn-primary">Recarregar Testes</button>
+                <button onclick="window.location.reload()" class="btn btn-primary px-4">Recarregar Diagnóstico</button>
             </div>
         </div>
     </div>
