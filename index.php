@@ -35,9 +35,12 @@ try {
 </head>
 <body>
 
-<nav class="navbar navbar-dark bg-success mb-4">
+<nav class="navbar navbar-expand-lg navbar-dark bg-success mb-4">
     <div class="container">
         <span class="navbar-brand mb-0 h1">W-API Webhook Dashboard</span>
+        <div class="navbar-nav ms-auto">
+            <a class="nav-link btn btn-outline-light btn-sm px-3" href="diagnostico.php">Diagnóstico</a>
+        </div>
     </div>
 </nav>
 
