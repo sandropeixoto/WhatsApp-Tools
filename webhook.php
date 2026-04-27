@@ -55,6 +55,15 @@ if (isset($data['event']) && in_array($data['event'], $allowedEvents)) {
             } elseif (isset($msg['documentMessage'])) {
                 $content = json_encode($msg['documentMessage']);
                 $type = 'document';
+            } elseif (isset($msg['documentWithCaptionMessage'])) {
+                $content = json_encode($msg['documentWithCaptionMessage']['message']['documentMessage'] ?? []);
+                $type = 'document';
+            } elseif (isset($msg['imageWithCaptionMessage'])) {
+                $content = json_encode($msg['imageWithCaptionMessage']['message']['imageMessage'] ?? []);
+                $type = 'image';
+            } elseif (isset($msg['videoWithCaptionMessage'])) {
+                $content = json_encode($msg['videoWithCaptionMessage']['message']['videoMessage'] ?? []);
+                $type = 'video';
             }
         }
 
