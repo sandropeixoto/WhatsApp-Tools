@@ -4,13 +4,21 @@ require_once 'config.php';
 $baseInstances = listInstances();
 $instances = [];
 
-// Busca detalhes para cada instância para ter dados completos (conexão, stats, etc)
-foreach ($baseInstances as $base) {
-    $details = fetchInstanceDetails($base['instanceId']);
+// Se a listagem falhar (provavelmente token de instância), tenta carregar ao menos a instância da config
+if (empty($baseInstances)) {
+    $details = fetchInstanceDetails(WAPI_INSTANCE_ID);
     if ($details) {
         $instances[] = $details;
-    } else {
-        $instances[] = $base; // Fallback para dados básicos se falhar
+    }
+} else {
+    // Busca detalhes para cada instância retornada
+    foreach ($baseInstances as $base) {
+        $details = fetchInstanceDetails($base['instanceId']);
+        if ($details) {
+            $instances[] = $details;
+        } else {
+            $instances[] = $base;
+        }
     }
 }
 ?>

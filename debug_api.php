@@ -6,8 +6,8 @@ header('Content-Type: text/plain');
 echo "--- TESTE DE CONEXÃO W-API ---\n\n";
 
 // 1. Testando List Instances
-echo "1. Chamando: " . WAPI_BASE_URL . "/v1/client/list-instances\n";
-$ch = curl_init(WAPI_BASE_URL . '/v1/client/list-instances');
+echo "1. Chamando: " . WAPI_BASE_URL . "/v1/client/list-instances?apiKey=" . WAPI_TOKEN . "\n";
+$ch = curl_init(WAPI_BASE_URL . '/v1/client/list-instances?apiKey=' . WAPI_TOKEN);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 curl_setopt($ch, CURLOPT_HTTPHEADER, [
